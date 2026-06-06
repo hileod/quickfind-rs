@@ -35,7 +35,7 @@
     "windows": {
       "nsis": {
         "installerIcon": "icons/icon.ico",
-        "installMode": "both",
+        "installMode": "currentUser",
         "languages": ["English", "SimpChinese"],
         "displayLanguageSelector": true,
         "compression": "lzma",

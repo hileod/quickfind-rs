@@ -67,7 +67,7 @@
       />
     </label>
     <button class="primary" disabled={busy} onclick={onBuild}>Build index</button>
-    <button disabled={busy} onclick={onAdmin}>Restart as administrator</button>
+    <button disabled={busy} onclick={onAdmin}>Run as administrator</button>
     <div class:ok={statusKind === "ok"} class:error={statusKind === "error"} class="status">
       {status}
     </div>

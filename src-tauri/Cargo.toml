@@ -12,6 +12,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 quickfind = { path = ".." }
 serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "2.6.2", features = [] }
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging"] }
 
 [build-dependencies]
 tauri-build = { version = "2.3.1", features = [] }

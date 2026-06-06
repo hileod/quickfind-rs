@@ -148,7 +148,7 @@
   async function relaunchAdmin() {
     try {
       await restartAsAdmin();
-      status = "UAC prompt started. Close this window after the elevated Quickfind opens.";
+      status = "UAC prompt opened. Close this window after the elevated Quickfind starts.";
       statusKind = "ok";
     } catch (error) {
       status = String(error);

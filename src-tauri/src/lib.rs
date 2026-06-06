@@ -3,6 +3,16 @@ use std::process::Command;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use std::time::SystemTime;
+use std::{fs::OpenOptions, io::Write};
+
+#[cfg(windows)]
+use std::os::windows::ffi::OsStrExt;
+#[cfg(windows)]
+use windows_sys::Win32::Foundation::HWND;
+#[cfg(windows)]
+use windows_sys::Win32::UI::Shell::ShellExecuteW;
+#[cfg(windows)]
+use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
 
 use quickfind::cli;
 use quickfind::index::{EntryKind, FileEntry};
@@ -77,6 +87,7 @@ struct SearchItem {
 fn get_defaults() -> Defaults {
     let root = std::env::current_dir().unwrap_or_else(|_| cli::default_root());
     let index = default_data_dir().join("desktop.qf");
+    log_event(format!("defaults root={} index={}", root.display(), index.display()));
 
     Defaults {
         root: root.display().to_string(),
@@ -92,6 +103,12 @@ async fn rebuild_index(
     output: String,
     threads: usize,
 ) -> AppResult<IndexSummary> {
+    log_event(format!(
+        "rebuild_index requested roots={} output={} threads={}",
+        roots.join(";"),
+        output,
+        threads
+    ));
     let summary = tauri::async_runtime::spawn_blocking(move || {
         let roots = roots
             .into_iter()
@@ -111,7 +128,8 @@ async fn rebuild_index(
             threads.clamp(1, 32)
         };
         let report = build_index_with_report(roots, thread_count).map_err(to_message)?;
-        storage::write_index(&output, &report.entries).map_err(to_message)?;
+        storage::write_index(&output, &report.entries)
+            .map_err(|error| format!("failed to write index {}: {error}", output.display()))?;
 
         let metadata = turso_storage::metadata_path_for(&output);
         let modified = index_modified(&output);
@@ -141,6 +159,10 @@ async fn rebuild_index(
 
     let (summary, metadata, cached) = summary;
     replace_cache(&state, cached)?;
+    log_event(format!(
+        "rebuild_index completed files={} skipped_dirs={} skipped_items={} index={}",
+        summary.files, summary.skipped_dirs, summary.skipped_items, summary.index
+    ));
     write_metadata_in_background(metadata, Arc::clone(&current_cache_required(&state)?));
     Ok(summary)
 }
@@ -213,7 +235,10 @@ async fn open_path(path: String) -> AppResult<()> {
             .arg(path)
             .spawn()
             .map(|_| ())
-            .map_err(to_message)
+            .map_err(|error| {
+                log_event(format!("open_path failed: {error}"));
+                to_message(error)
+            })
     })
     .await
     .map_err(to_message)?
@@ -223,12 +248,8 @@ async fn open_path(path: String) -> AppResult<()> {
 async fn restart_as_admin() -> AppResult<()> {
     tauri::async_runtime::spawn_blocking(move || {
         let exe = std::env::current_exe().map_err(to_message)?;
-        let command = format!("Start-Process -FilePath '{}' -Verb RunAs", escape_ps_path(&exe));
-        Command::new("powershell.exe")
-            .args(["-NoProfile", "-Command", &command])
-            .spawn()
-            .map(|_| ())
-            .map_err(to_message)
+        log_event(format!("restart_as_admin requested exe={}", exe.display()));
+        run_as_admin(&exe)
     })
     .await
     .map_err(to_message)?
@@ -316,7 +337,9 @@ fn current_cache_required(state: &State<'_, AppState>) -> AppResult<Arc<Vec<File
 fn write_metadata_in_background(path: PathBuf, entries: Arc<Vec<FileEntry>>) {
     tauri::async_runtime::spawn_blocking(move || {
         if let Err(error) = turso_storage::write_metadata(&path, &entries) {
-            eprintln!("metadata write failed for {}: {error}", path.display());
+            log_event(format!("metadata write failed for {}: {error}", path.display()));
+        } else {
+            log_event(format!("metadata write completed path={}", path.display()));
         }
     });
 }
@@ -356,8 +379,42 @@ fn normalize_drive(value: Option<&str>) -> Option<String> {
         .filter(|value| !value.is_empty())
 }
 
-fn escape_ps_path(path: &std::path::Path) -> String {
-    path.display().to_string().replace('\'', "''")
+#[cfg(windows)]
+fn run_as_admin(exe: &std::path::Path) -> AppResult<()> {
+    let operation = wide_null("runas");
+    let file = wide_null(&exe.display().to_string());
+    let result = unsafe {
+        ShellExecuteW(
+            std::ptr::null_mut::<HWND__>() as HWND,
+            operation.as_ptr(),
+            file.as_ptr(),
+            std::ptr::null(),
+            std::ptr::null(),
+            SW_SHOWNORMAL,
+        )
+    } as isize;
+
+    if result <= 32 {
+        Err(format!("failed to request administrator privileges, ShellExecuteW returned {result}"))
+    } else {
+        Ok(())
+    }
+}
+
+#[cfg(not(windows))]
+fn run_as_admin(_exe: &std::path::Path) -> AppResult<()> {
+    Err(String::from("administrator relaunch is only supported on Windows"))
+}
+
+#[cfg(windows)]
+enum HWND__ {}
+
+#[cfg(windows)]
+fn wide_null(value: &str) -> Vec<u16> {
+    std::ffi::OsStr::new(value)
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect()
 }
 
 fn default_data_dir() -> PathBuf {
@@ -375,6 +432,23 @@ fn install_dir() -> Option<PathBuf> {
     std::env::current_exe()
         .ok()
         .and_then(|path| path.parent().map(PathBuf::from))
+}
+
+fn log_event(message: impl AsRef<str>) {
+    let Some(dir) = install_dir() else {
+        return;
+    };
+    let log_dir = dir.join("logs");
+    let _ = std::fs::create_dir_all(&log_dir);
+    let log_path = log_dir.join("quickfind.log");
+    let Ok(mut file) = OpenOptions::new().create(true).append(true).open(log_path) else {
+        return;
+    };
+    let seconds = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .map(|duration| duration.as_secs())
+        .unwrap_or_default();
+    let _ = writeln!(file, "[{seconds}] {}", message.as_ref());
 }
 
 #[cfg(test)]
