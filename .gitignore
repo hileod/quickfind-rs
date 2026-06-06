@@ -1,0 +1,10 @@
+/target/
+/.quickfind/
+/tmp-e2e/
+/src-tauri/target/
+/frontend/node_modules/
+/frontend/dist/
+*.qf
+*.meta.db
+*.db-wal
+*.db-shm

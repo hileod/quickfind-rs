@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quickfind</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar">
+        <header class="brand">
+          <div class="mark">QF</div>
+          <div>
+            <h1>Quickfind</h1>
+            <p>Local file index</p>
+          </div>
+        </header>
+
+        <section class="panel">
+          <h2>Index</h2>
+          <label>
+            Root
+            <input id="rootInput" spellcheck="false" />
+          </label>
+          <label>
+            Index file
+            <input id="indexInput" spellcheck="false" />
+          </label>
+          <label>
+            Threads
+            <input id="threadsInput" type="number" min="0" max="32" placeholder="Auto" />
+          </label>
+          <button id="indexButton" class="primary">Build index</button>
+          <div id="indexStatus" class="status"></div>
+        </section>
+
+        <section class="panel compact">
+          <h2>Stats</h2>
+          <button id="statsButton">Refresh stats</button>
+          <dl id="statsList"></dl>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <header class="workspace-head">
+          <div>
+            <h2>Search</h2>
+            <p>Filename, path, wildcard extension, and typed filters</p>
+          </div>
+          <div class="quick-hints">
+            <span>*.pdf</span>
+            <span>budget *.xlsx</span>
+            <span>folder names</span>
+          </div>
+        </header>
+
+        <section class="search-panel">
+          <div class="searchbar">
+            <input id="queryInput" placeholder="Search files..." spellcheck="false" autofocus />
+            <input id="limitInput" type="number" min="1" max="500" value="50" />
+            <button id="searchButton">Search</button>
+          </div>
+
+          <div class="filters">
+            <label>
+              Type
+              <select id="kindFilter">
+                <option value="">All</option>
+                <option value="folder">Folders</option>
+                <option value="file">Files</option>
+              </select>
+            </label>
+            <label>
+              Extension
+              <input id="extensionFilter" placeholder="pdf" spellcheck="false" />
+            </label>
+            <label>
+              Drive
+              <input id="driveFilter" placeholder="C:" spellcheck="false" />
+            </label>
+          </div>
+        </section>
+
+        <div class="results-meta">
+          <span id="resultCount">No search yet</span>
+          <span id="timing"></span>
+        </div>
+
+        <div class="results" id="results"></div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
