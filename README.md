@@ -26,7 +26,7 @@ The current implementation uses fast recursive scanning, a compact local `.qf` h
 - Recursive scanner skips inaccessible directories/items instead of failing the whole scan.
 - UI reports skipped permission-denied directories/items after indexing.
 - Desktop app can relaunch as administrator through UAC for broader scan access.
-- Default desktop index path is user-writable: `%LOCALAPPDATA%\Quickfind\desktop.qf`.
+- Default desktop index path follows the installed executable directory: `<install-dir>\.quickfind\desktop.qf`.
 - Metadata sidecar is written in the background so the UI returns quickly after indexing.
 
 ## Project Layout
@@ -139,6 +139,28 @@ Set-Location D:\quickfind-rs\src-tauri
 .\target\debug\quickfind-desktop.exe
 ```
 
+Build a Windows installer package:
+
+```powershell
+Set-Location D:\quickfind-rs\src-tauri
+cargo tauri build
+```
+
+The installer is generated under:
+
+```text
+D:\quickfind-rs\src-tauri\target\release\bundle\nsis\
+```
+
+The NSIS installer allows choosing the install mode/path. The desktop app stores its default index beside the installed executable:
+
+```text
+<install-dir>\.quickfind\desktop.qf
+<install-dir>\.quickfind\desktop.meta.db
+```
+
+If the app is installed under a protected directory such as `C:\Program Files`, writing the index beside the executable requires elevated permissions. Install to a user-writable path, or use `Restart as administrator` in the app before indexing protected locations.
+
 For full-drive scanning such as `C:\`, use `Restart as administrator` in the app if normal scanning reports many skipped directories. Long term, the planned Windows Service will handle privileged indexing more cleanly than an elevated GUI process.
 
 ## CLI Usage
@@ -194,8 +216,8 @@ Default CLI index path:
 Default desktop index path:
 
 ```text
-%LOCALAPPDATA%\Quickfind\desktop.qf
-%LOCALAPPDATA%\Quickfind\desktop.meta.db
+<install-dir>\.quickfind\desktop.qf
+<install-dir>\.quickfind\desktop.meta.db
 ```
 
 ## Current Limitations

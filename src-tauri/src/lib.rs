@@ -361,10 +361,20 @@ fn escape_ps_path(path: &std::path::Path) -> String {
 }
 
 fn default_data_dir() -> PathBuf {
-    std::env::var_os("LOCALAPPDATA")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| cli::default_root()))
-        .join("Quickfind")
+    install_dir()
+        .unwrap_or_else(|| {
+            std::env::var_os("LOCALAPPDATA")
+                .map(PathBuf::from)
+                .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| cli::default_root()))
+                .join("Quickfind")
+        })
+        .join(".quickfind")
+}
+
+fn install_dir() -> Option<PathBuf> {
+    std::env::current_exe()
+        .ok()
+        .and_then(|path| path.parent().map(PathBuf::from))
 }
 
 #[cfg(test)]

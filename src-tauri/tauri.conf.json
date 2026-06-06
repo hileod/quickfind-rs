@@ -25,7 +25,22 @@
     }
   },
   "bundle": {
-    "active": false,
-    "targets": "all"
+    "active": true,
+    "targets": ["nsis"],
+    "publisher": "hileod",
+    "category": "Utility",
+    "shortDescription": "Fast local file search for Windows",
+    "longDescription": "Quickfind is a Rust and Tauri desktop file search tool with a compact local index, typed filters, wildcard extension search, and Windows administrator relaunch support.",
+    "icon": ["icons/icon.ico"],
+    "windows": {
+      "nsis": {
+        "installerIcon": "icons/icon.ico",
+        "installMode": "both",
+        "languages": ["English", "SimpChinese"],
+        "displayLanguageSelector": true,
+        "compression": "lzma",
+        "startMenuFolder": "Quickfind"
+      }
+    }
   }
 }
