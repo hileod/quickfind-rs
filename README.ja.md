@@ -6,6 +6,8 @@ Quickfind は Windows 向けのローカルファイル検索ツールです。E
 
 現在の実装は、高速な再帰スキャン、コンパクトな `.qf` ホットインデックス、Turso `.meta.db` メタデータ sidecar を使います。次の段階では Windows Service、MFT 初期インデックス、USN Journal による増分更新を目指します。
 
+License: MIT.
+
 ## 技術スタック
 
 - Rust stable、edition 2024: スキャナ、検索エンジン、バイナリインデックス、CLI、Tauri バックエンド。

@@ -6,6 +6,8 @@ Quickfind 是一个面向 Windows 的本地文件搜索工具，灵感来自 Eve
 
 当前版本使用并发递归扫描、紧凑的 `.qf` 本地热索引，以及 Turso `.meta.db` 元数据 sidecar。下一阶段目标是 Windows Service + MFT 首次建索引 + USN Journal 增量更新。
 
+开源协议：MIT。
+
 ## 技术栈
 
 - Rust stable，edition 2024：扫描器、搜索引擎、二进制索引、CLI、Tauri 后端。
