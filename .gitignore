@@ -8,3 +8,4 @@
 *.meta.db
 *.db-wal
 *.db-shm
+/quickfind-tree.json
