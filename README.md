@@ -1,5 +1,7 @@
 # Quickfind
 
+Languages: [English](README.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md)
+
 Quickfind is a Windows-focused local file search tool inspired by Everything and uTools Find.
 It is built with Rust for the indexing/search core and Tauri + Svelte for the desktop UI.
 
