@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.2 - 2026-06-06
+
+### Changed
+
+- Improve Windows administrator relaunch behavior.
+- Improve desktop logging around elevation and Windows startup.
+- Build a fresh NSIS installer from the latest `main` source.
+
 ## v0.1.1 - 2026-06-06
 
 ### Added

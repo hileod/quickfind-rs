@@ -3166,7 +3166,7 @@ dependencies = [
 
 [[package]]
 name = "quickfind"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "tokio",
  "turso",
@@ -3174,7 +3174,7 @@ dependencies = [
 
 [[package]]
 name = "quickfind-desktop"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "quickfind",
  "serde",
