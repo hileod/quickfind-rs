@@ -1,4 +1,4 @@
-export type EntryKind = "" | "file" | "folder";
+export type EntryKind = "" | "app" | "file" | "folder";
 
 export type Defaults = {
   root: string;
@@ -27,7 +27,7 @@ export type StatsSummary = {
 export type SearchItem = {
   path: string;
   name: string;
-  kind: "file" | "folder";
+  kind: "app" | "file" | "folder";
   score: number;
 };
 

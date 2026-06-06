@@ -13,6 +13,7 @@
     onBuild: () => void;
     onStats: () => void;
     onAdmin: () => void;
+    onAllDrives: () => void;
     onRootChange: (value: string) => void;
     onIndexChange: (value: string) => void;
     onThreadsChange: (value: string) => void;
@@ -30,6 +31,7 @@
     onBuild,
     onStats,
     onAdmin,
+    onAllDrives,
     onRootChange,
     onIndexChange,
     onThreadsChange,
@@ -48,7 +50,7 @@
   <section class="panel">
     <h2>Index</h2>
     <label>
-      Root
+      Roots
       <input spellcheck="false" value={root} oninput={(event) => onRootChange(event.currentTarget.value)} />
     </label>
     <label>
@@ -67,6 +69,7 @@
       />
     </label>
     <button class="primary" disabled={busy} onclick={onBuild}>Build index</button>
+    <button disabled={busy} onclick={onAllDrives}>Use all drives</button>
     <button disabled={busy} onclick={onAdmin}>Run as administrator</button>
     <div class:ok={statusKind === "ok"} class:error={statusKind === "error"} class="status">
       {status}

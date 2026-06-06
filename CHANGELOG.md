@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.1.3 - 2026-06-06
+
+### Added
+
+- Add desktop all-drive scan defaults and a `Use all drives` action.
+- Classify Windows application entries from `.exe`, `.lnk`, and `.appref-ms` files.
+- Add application result grouping and an `Apps` type filter in the desktop UI.
+
+### Changed
+
+- Support multiple desktop scan roots separated by semicolons, commas, or newlines.
+- Preserve application entry kinds in the compact `.qf` index format.
+
 ## v0.1.2 - 2026-06-06
 
 ### Changed

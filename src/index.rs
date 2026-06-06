@@ -4,6 +4,7 @@ use std::path::PathBuf;
 pub enum EntryKind {
     File,
     Directory,
+    Application,
 }
 
 impl EntryKind {
@@ -11,12 +12,14 @@ impl EntryKind {
         match self {
             Self::File => "file",
             Self::Directory => "folder",
+            Self::Application => "app",
         }
     }
 
     pub fn from_str(value: &str) -> Self {
         match value {
             "folder" | "directory" => Self::Directory,
+            "app" | "application" => Self::Application,
             _ => Self::File,
         }
     }
@@ -25,12 +28,14 @@ impl EntryKind {
         match self {
             Self::File => 0,
             Self::Directory => 1,
+            Self::Application => 2,
         }
     }
 
     pub fn from_byte(value: u8) -> Self {
         match value {
             1 => Self::Directory,
+            2 => Self::Application,
             _ => Self::File,
         }
     }

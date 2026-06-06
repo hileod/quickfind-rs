@@ -11,8 +11,9 @@
 
   let { payload, error, searched, onOpen }: Props = $props();
 
+  let apps = $derived(payload?.matches.filter((item) => item.kind === "app") ?? []);
   let folders = $derived(payload?.matches.filter((item) => item.kind === "folder") ?? []);
-  let files = $derived(payload?.matches.filter((item) => item.kind !== "folder") ?? []);
+  let files = $derived(payload?.matches.filter((item) => item.kind === "file") ?? []);
 
 </script>
 
@@ -23,6 +24,13 @@
 {:else if payload && payload.matches.length === 0}
   <div class="empty">No matching files</div>
 {:else if payload}
+  {#if apps.length}
+    <div class="result-group">Apps ({apps.length})</div>
+    {#each apps as item}
+      <ResultRow {item} {onOpen} />
+    {/each}
+  {/if}
+
   {#if folders.length}
     <div class="result-group">Folders ({folders.length})</div>
     {#each folders as item}

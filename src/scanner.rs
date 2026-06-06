@@ -34,7 +34,8 @@ pub fn build_index_with_report(roots: Vec<PathBuf>, thread_count: usize) -> Resu
             let mut skipped_items = 0;
             while let Some(dir) = queue.pop() {
                 if dir.is_file() {
-                    batch.push(FileEntry::from_path_with_kind(dir, EntryKind::File));
+                    let kind = file_kind(&dir);
+                    batch.push(FileEntry::from_path_with_kind(dir, kind));
                 } else if dir.is_dir() {
                     batch.push(FileEntry::from_path_with_kind(
                         dir.clone(),
@@ -140,10 +141,23 @@ fn scan_dir(queue: &WorkQueue, dir: &Path, batch: &mut Vec<FileEntry>) -> ScanSt
                 queue.push(path);
             }
         } else if file_type.is_file() {
-            batch.push(FileEntry::from_path_with_kind(path, EntryKind::File));
+            let kind = file_kind(&path);
+            batch.push(FileEntry::from_path_with_kind(path, kind));
         }
     }
     stats
+}
+
+fn file_kind(path: &Path) -> EntryKind {
+    let extension = path
+        .extension()
+        .and_then(OsStr::to_str)
+        .map(str::to_ascii_lowercase);
+
+    match extension.as_deref() {
+        Some("exe" | "lnk" | "appref-ms") => EntryKind::Application,
+        _ => EntryKind::File,
+    }
 }
 
 #[cfg(test)]
@@ -202,6 +216,19 @@ mod tests {
 
         let _ = fs::remove_file(file);
         let _ = fs::remove_dir(dir);
+    }
+
+    #[test]
+    fn classifies_windows_app_entries() {
+        assert_eq!(
+            file_kind(Path::new("C:\\Tools\\Quickfind.exe")),
+            EntryKind::Application
+        );
+        assert_eq!(
+            file_kind(Path::new("C:\\Users\\Public\\App.lnk")),
+            EntryKind::Application
+        );
+        assert_eq!(file_kind(Path::new("C:\\Docs\\notes.txt")), EntryKind::File);
     }
 }
 

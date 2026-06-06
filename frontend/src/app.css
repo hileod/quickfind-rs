@@ -325,6 +325,44 @@ dd {
   cursor: default;
 }
 
+.result-main {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.result-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #f4f7f8;
+  color: #5d6c78;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.result-icon.app {
+  border-color: #99c7d1;
+  background: linear-gradient(145deg, #e8f8fb, #ffffff);
+  color: #095e70;
+}
+
+.result-icon.folder {
+  border-color: #b7d9d2;
+  background: var(--accent-soft);
+  color: #0b5f59;
+}
+
+.result-copy {
+  min-width: 0;
+}
+
 .result-row:hover {
   background: #f2faf8;
 }
@@ -385,6 +423,12 @@ dd {
   border-color: #b7d9d2;
   background: var(--accent-soft);
   color: #0b5f59;
+}
+
+.kind.app {
+  border-color: #99c7d1;
+  background: #e8f8fb;
+  color: #095e70;
 }
 
 .kind.file {

@@ -5,6 +5,10 @@ export function getDefaults() {
   return invoke<Defaults>("get_defaults");
 }
 
+export function scanRoots() {
+  return invoke<string[]>("scan_roots");
+}
+
 export function rebuildIndex(args: { roots: string[]; output: string; threads: number }) {
   return invoke<IndexSummary>("rebuild_index", args);
 }

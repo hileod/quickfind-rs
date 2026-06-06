@@ -60,6 +60,7 @@
       Type
       <select value={kind} onchange={(event) => onKindChange(event.currentTarget.value as EntryKind)}>
         <option value="">All</option>
+        <option value="app">Apps</option>
         <option value="folder">Folders</option>
         <option value="file">Files</option>
       </select>

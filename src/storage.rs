@@ -94,6 +94,10 @@ mod tests {
         let entries = vec![
             FileEntry::from_string(r"C:\Work\Cargo.toml".to_string()),
             FileEntry::from_string_with_kind(r"C:\Work\src".to_string(), EntryKind::Directory),
+            FileEntry::from_string_with_kind(
+                r"C:\Program Files\Quickfind\Quickfind.exe".to_string(),
+                EntryKind::Application,
+            ),
         ];
 
         write_index(&path, &entries).unwrap();

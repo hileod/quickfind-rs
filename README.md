@@ -20,9 +20,9 @@ The current implementation uses fast recursive scanning, a compact local `.qf` h
 
 ## Highlights
 
-- Desktop app with index controls, search box, typed filters, result grouping, and direct open actions.
+- Desktop app with all-drive index controls, search box, typed filters, result grouping, and direct open actions.
 - Fast name/path search with explicit ranking rules.
-- Supports folder and file classification, similar to uTools Find result grouping.
+- Supports app, folder, and file classification, similar to uTools Find result grouping.
 - Supports wildcard extension queries such as `*.pdf` and combined queries such as `budget *.pdf`.
 - Supports filters by type, extension, and drive.
 - Double-click or `Open` button opens files/folders through Windows Explorer/default apps.
@@ -93,7 +93,7 @@ Quickfind follows a local, in-process search model similar to the useful parts o
 Document fields:
   name
   path
-  kind: file | folder
+  kind: app | file | folder
   extension
   drive
 

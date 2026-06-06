@@ -10,6 +10,8 @@ use std::os::windows::ffi::OsStrExt;
 #[cfg(windows)]
 use windows_sys::Win32::Foundation::HWND;
 #[cfg(windows)]
+use windows_sys::Win32::Storage::FileSystem::GetDriveTypeW;
+#[cfg(windows)]
 use windows_sys::Win32::UI::Shell::ShellExecuteW;
 #[cfg(windows)]
 use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
@@ -85,15 +87,35 @@ struct SearchItem {
 
 #[tauri::command]
 fn get_defaults() -> Defaults {
-    let root = std::env::current_dir().unwrap_or_else(|_| cli::default_root());
+    let roots = available_scan_roots();
+    let root = if roots.is_empty() {
+        std::env::current_dir()
+            .unwrap_or_else(|_| cli::default_root())
+            .display()
+            .to_string()
+    } else {
+        roots
+            .into_iter()
+            .map(|path| path.display().to_string())
+            .collect::<Vec<_>>()
+            .join("; ")
+    };
     let index = default_data_dir().join("desktop.qf");
-    log_event(format!("defaults root={} index={}", root.display(), index.display()));
+    log_event(format!("defaults root={} index={}", root, index.display()));
 
     Defaults {
-        root: root.display().to_string(),
+        root,
         index: index.display().to_string(),
         threads: cli::default_thread_count(),
     }
+}
+
+#[tauri::command]
+fn scan_roots() -> Vec<String> {
+    available_scan_roots()
+        .into_iter()
+        .map(|path| path.display().to_string())
+        .collect()
 }
 
 #[tauri::command]
@@ -261,6 +283,7 @@ pub fn run() {
         .manage(AppState::default())
         .invoke_handler(tauri::generate_handler![
             get_defaults,
+            scan_roots,
             rebuild_index,
             index_stats,
             search_index,
@@ -353,6 +376,7 @@ fn index_modified(path: &PathBuf) -> Option<SystemTime> {
 fn parse_kind_filter(value: Option<&str>) -> Option<EntryKind> {
     match value.map(str::trim).filter(|value| !value.is_empty()) {
         Some("file") => Some(EntryKind::File),
+        Some("app") | Some("application") => Some(EntryKind::Application),
         Some("folder") | Some("directory") => Some(EntryKind::Directory),
         _ => None,
     }
@@ -428,6 +452,34 @@ fn default_data_dir() -> PathBuf {
         .join(".quickfind")
 }
 
+fn available_scan_roots() -> Vec<PathBuf> {
+    #[cfg(windows)]
+    {
+        windows_scan_roots()
+    }
+
+    #[cfg(not(windows))]
+    {
+        vec![cli::default_root()]
+    }
+}
+
+#[cfg(windows)]
+fn windows_scan_roots() -> Vec<PathBuf> {
+    const DRIVE_REMOVABLE: u32 = 2;
+    const DRIVE_FIXED: u32 = 3;
+
+    ('C'..='Z')
+        .map(|drive| format!("{drive}:\\"))
+        .filter(|root| {
+            let wide = wide_null(root);
+            let drive_type = unsafe { GetDriveTypeW(wide.as_ptr()) };
+            drive_type == DRIVE_FIXED || drive_type == DRIVE_REMOVABLE
+        })
+        .map(PathBuf::from)
+        .collect()
+}
+
 fn install_dir() -> Option<PathBuf> {
     std::env::current_exe()
         .ok()
@@ -458,6 +510,7 @@ mod tests {
     #[test]
     fn parses_kind_filter() {
         assert_eq!(parse_kind_filter(Some("file")), Some(EntryKind::File));
+        assert_eq!(parse_kind_filter(Some("app")), Some(EntryKind::Application));
         assert_eq!(parse_kind_filter(Some("folder")), Some(EntryKind::Directory));
         assert_eq!(parse_kind_filter(Some("")), None);
     }

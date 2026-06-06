@@ -2,7 +2,7 @@
   import IndexPanel from "./components/IndexPanel.svelte";
   import ResultList from "./components/ResultList.svelte";
   import SearchPanel from "./components/SearchPanel.svelte";
-  import { getDefaults, indexStats, openPath, rebuildIndex, restartAsAdmin, searchIndex } from "./lib/tauri";
+  import { getDefaults, indexStats, openPath, rebuildIndex, restartAsAdmin, scanRoots, searchIndex } from "./lib/tauri";
   import type { Defaults, EntryKind, SearchFilters, SearchPayload, StatsSummary } from "./lib/types";
   import "./app.css";
 
@@ -43,6 +43,13 @@
     return Boolean(query.trim() || filter.kind || filter.extension || filter.drive);
   }
 
+  function parseRoots(value: string) {
+    return value
+      .split(/[\n;,]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
   function scheduleSearch() {
     window.clearTimeout(searchTimer);
     searchTimer = window.setTimeout(runSearch, 200);
@@ -50,11 +57,11 @@
 
   async function buildIndex() {
     const output = index.trim();
-    const scanRoot = root.trim();
+    const scanRootList = parseRoots(root);
     const threadCount = Number.parseInt(threads, 10) || 0;
 
-    if (!scanRoot || !output) {
-      status = "Root and index file are required.";
+    if (!scanRootList.length || !output) {
+      status = "Roots and index file are required.";
       statusKind = "error";
       return;
     }
@@ -64,7 +71,7 @@
     statusKind = "";
     try {
       const summary = await rebuildIndex({
-        roots: [scanRoot],
+        roots: scanRootList,
         output,
         threads: threadCount,
       });
@@ -156,6 +163,24 @@
     }
   }
 
+  async function useAllDrives() {
+    try {
+      const roots = await scanRoots();
+      if (!roots.length) {
+        status = "No scan drives were found.";
+        statusKind = "error";
+        return;
+      }
+
+      root = roots.join("; ");
+      status = `Ready to scan ${roots.join(", ")}`;
+      statusKind = "ok";
+    } catch (error) {
+      status = String(error);
+      statusKind = "error";
+    }
+  }
+
   getDefaults()
     .then((value) => {
       defaults = value;
@@ -181,6 +206,7 @@
     onBuild={buildIndex}
     onStats={refreshStats}
     onAdmin={relaunchAdmin}
+    onAllDrives={useAllDrives}
     onRootChange={(value) => (root = value)}
     onIndexChange={(value) => (index = value)}
     onThreadsChange={(value) => (threads = value)}
